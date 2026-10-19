@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f3efe6">
+<title>Party wall calculator · Siniat Interhome vs Hebel PowerPanel50</title>
+<meta name="description" content="Estimate the central fire barrier materials for a residential party (intertenancy) wall: Siniat Interhome low-rise and Hebel PowerPanel50, side by side, from wall length and height.">
+<style>
+:root{
+  --bg:#f3efe6;--card:#fbf8f3;--line:#e4ddd2;--line2:#d9d0c5;--line3:#cfc6b8;
+  --ink:#1c1916;--muted:#5c564e;--accent:#b84312;--tint:#f4e3d4;--tint2:#f6d7c4;
+  --siniat:#2f5d8a;--hebel:#b84312;
+  --sans:"Outfit",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+body{line-height:1.45}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 18px 60px}
+h1{font-size:2rem;line-height:1.15;margin:0 0 6px;font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.15rem;margin:0 0 10px;font-weight:600}
+h3{font-size:1rem;margin:16px 0 8px;font-weight:600}
+p{margin:0 0 8px}
+.lede{color:var(--muted);max-width:780px}
+.warn{background:var(--tint);border:1px solid var(--tint2);border-radius:10px;padding:10px 12px;margin:12px 0 0;font-size:.92rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:16px}
+.mono{font-family:var(--mono)}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+/* inputs */
+.inputs{display:grid;grid-template-columns:repeat(2,minmax(0,220px)) 1fr;gap:14px;align-items:end}
+label.f{display:block;font-size:.85rem;color:var(--muted);margin-bottom:4px}
+.field{display:flex;align-items:center;background:#fff;border:1px solid var(--line2);border-radius:10px;overflow:hidden}
+.field input{border:0;outline:0;font:inherit;font-size:1.25rem;font-family:var(--mono);padding:10px 12px;width:100%;background:transparent;color:var(--ink)}
+.field span{padding:0 12px;color:var(--muted);font-family:var(--mono)}
+.field:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--tint)}
+.echo{font-family:var(--mono);font-size:.85rem;color:var(--muted)}
+.err{color:#a3220f;font-size:.85rem;margin-top:6px;min-height:1em}
+/* summary */
+.sumgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.sum{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;border-top:5px solid var(--siniat)}
+.sum.hebel{border-top-color:var(--hebel)}
+.sum .tag{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.sum .big{font-size:1.9rem;font-weight:700;line-height:1.1;margin:4px 0 10px}
+.kv{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.kv div{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px}
+.kv b{display:block;font-family:var(--mono);font-size:1.02rem;font-weight:500}
+.kv i{font-style:normal;font-size:.75rem;color:var(--muted)}
+.rating{margin-top:10px;font-size:.85rem;color:var(--muted)}
+/* assumptions */
+.assume{border-left:5px solid var(--accent)}
+.assume ul{margin:6px 0 0;padding-left:18px;columns:2;column-gap:28px}
+.assume li{margin:0 0 5px;break-inside:avoid;font-size:.9rem}
+.assume .sub{font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-top:10px}
+/* systems */
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.sys{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:16px;border-top:5px solid var(--siniat);min-width:0}
+.sys.hebel{border-top-color:var(--hebel)}
+.sys header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;font-size:.85rem;border:1px solid var(--line3);background:#fff;color:var(--ink);border-radius:999px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+button.primary:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.layout{font-size:.88rem;color:var(--muted);margin:4px 0 8px}
+.sketch{background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px;overflow:hidden}
+.sketch svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:.78rem;color:var(--muted);margin-top:6px}
+.legend span::before{content:"";display:inline-block;width:12px;height:10px;margin-right:5px;vertical-align:-1px;background:var(--c);border:1px solid rgba(0,0,0,.25)}
+.legend span.dot::before{border-radius:50%;width:9px;height:9px}
+.list{list-style:none;margin:10px 0 0;padding:0}
+.list .grp{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 4px;border-bottom:1px solid var(--line);padding-bottom:3px}
+.item{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:8px 0;border-bottom:1px dashed var(--line)}
+.item .nm{font-weight:600}
+.item .q{font-family:var(--mono);font-weight:500;text-align:right;white-space:nowrap}
+.item .why{grid-column:1 / -1;font-size:.83rem;color:var(--muted)}
+.item .code{font-family:var(--mono);font-size:.78rem;background:var(--tint);border-radius:5px;padding:1px 5px;margin-right:4px;color:var(--ink)}
+.item .asm{font-size:.72rem;background:#fff3d6;border:1px solid #ecd9a6;border-radius:5px;padding:0 5px;margin-left:4px;color:#7a5a00;white-space:nowrap}
+.notes{margin:10px 0 0;padding-left:18px;font-size:.85rem;color:var(--muted)}
+.notes li{margin-bottom:4px}
+details.how{margin-top:16px}
+details.how summary{cursor:pointer;font-weight:600;font-size:1.1rem}
+.how h3{margin-top:18px}
+.how ul{padding-left:18px}
+.how li{margin-bottom:6px;font-size:.92rem}
+.src a{color:var(--accent);word-break:break-all}
+.disclaimer{font-size:.88rem;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+@media (max-width:860px){
+  .cols,.sumgrid{grid-template-columns:1fr}
+  .assume ul{columns:1}
+  .inputs{grid-template-columns:1fr 1fr}
+  .inputs .echo{grid-column:1 / -1}
+  .kv{grid-template-columns:repeat(2,1fr)}
+  h1{font-size:1.6rem}
+}
+@media print{
+  body{background:#fff}
+  .wrap{max-width:none;padding:0}
+  .noprint,button,.btns{display:none!important}
+  .card,.sys,.sum{border-color:#999;break-inside:auto}
+  .cols,.sumgrid{grid-template-columns:1fr 1fr}
+  .sketch{break-inside:avoid}
+  .item{break-inside:avoid}
+  details.how{display:block}
+  details.how > *{display:block}
+  a{color:#000}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Party wall calculator</h1>
+  <p class="lede">Count the central fire barrier for a residential party wall (separating / intertenancy wall between townhouses or duplexes) in two systems side by side: <b>Siniat Interhome (low-rise)</b> 25mm Intershield in H-studs, and <b>Hebel PowerPanel50</b> 50mm AAC on aluminium brackets. Enter the wall length and height. Everything else is assumed and listed below.</p>
+  <p class="warn"><b>Unofficial planning quantities.</b> Not affiliated with or endorsed by Siniat (Etex Australia) or CSR Hebel. Check the current installation guide / technical manual before you order. Fire and acoustic ratings depend on the full compliant system built to the manufacturer's guide and the NCC.</p>
+
+  <section class="card noprint" aria-label="Wall size">
+    <h2>Wall</h2>
+    <div class="inputs">
+      <div><label class="f" for="len">Length</label><div class="field"><input id="len" type="number" inputmode="decimal" min="0.6" max="60" step="0.01" value="10"><span>m</span></div></div>
+      <div><label class="f" for="hgt">Height</label><div class="field"><input id="hgt" type="number" inputmode="decimal" min="1" max="12" step="0.01" value="2.7"><span>m</span></div></div>
+      <div class="echo" id="echo"></div>
+    </div>
+    <div class="err" id="err" role="alert"></div>
+    <p class="small muted">Height = the full height of the separating wall, from the slab to the underside of the roof covering. Both systems must run up to the roof, so include the roof-space part. For a raked or gable top, enter the highest point (the count is then a little generous).</p>
+  </section>
+
+  <div class="sumgrid" id="summary" aria-live="polite"></div>
+
+  <section class="card assume" aria-label="Assumptions">
+    <h2>Assumptions used</h2>
+    <div id="assume"></div>
+  </section>
+
+  <div class="cols" id="systems"></div>
+
+  <details class="how card" open>
+    <summary>How the quantities are counted</summary>
+    <div id="how"></div>
+  </details>
+
+  <section class="card disclaimer">
+    <h2>Disclaimer</h2>
+    <p>Unofficial planning quantities only, for budgeting and early ordering conversations. This tool is not affiliated with, endorsed by or checked by Siniat / Etex Australia, CSR Hebel, CSR Bradford or Fletcher Insulation. Interhome, Intershield, Shaftliner, Fireshield, Multishield and bindex are Siniat trade names; Hebel and PowerPanel50 are CSR trade names. Product codes are shown only where they appear in the manufacturer's published documents; a blank code means none was found.</p>
+    <p>Fire Resistance Levels and sound ratings only apply to the complete system (frames, gaps, clips/brackets, linings, insulation, sealants and junction details) built exactly to the current manufacturer's guide, the NCC and the project's fire, acoustic and structural design. Check the current Siniat Interhome Low-Rise guide or the current Hebel PowerPanel50 Intertenancy Design &amp; Installation Guide, and confirm stock sizes, pack sizes and availability with your supplier before you order. Prices are not included.</p>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+/* ---------------- constants from the sources ---------------- */
+var SRC = {
+  siniatGuide: 'https://siniat.solutions/calculate/Resources/InterHome_Manual.pdf',
+  siniatPage: 'https://www.siniat.com.au/en-au/products--systems/systems/interhome-systems/interhome/',
+  siniatCat: 'https://media.siniat.com/doc_909371_au/original/-1040107317/siniat-product-catalogue_july26.pdf',
+  siniatOffer: 'https://www.siniat.com.au/siteassets/au-siniat-site-assets/distributor-extranet/resource-files/siniat_product_offer_may_2024-marketing-qld.pdf',
+  fletcher: 'https://insulation.com.au/product/fire-stop-party-wall-batts',
+  hebelGuide: 'https://hebel.com.au/wp-content/uploads/downloads/Low-Rise-Multi-Residential-PowerPanel-Intertenancy-and-Dual-Zero-Boundary-Walls-Design-and-Installation-Guide_HELIT152.pdf',
+  hebelFlyer: 'https://hebel.com.au/wp-content/uploads/2025/12/Hebel-PowerPanel50-Low-Rise-Multi-Residential-Intertenancy-Wall-Flyer_HELIT171.pdf',
+  bradfordPWS: 'https://www.csrbradford.com.au/products/wall-insulation/party-wall/fireseal-party-wall-sealer',
+  csrFireseal: 'https://www.gyprock.com.au/products/adhesives-and-sealants/sealants/csr-fireseal',
+  csrFiresealSDS: 'https://hebel.com.au/wp-content/uploads/downloads/SDS-FireSeal-Aus.pdf',
+  hebelAdhesive: 'https://newtonsbuilding.com.au/product/hebel-adhesive-20kg-ea'
+};
+var D = { // fixed defaults (all visible in the Assumptions panel)
+  storeyPitch: 3.0,   // floor-to-floor
+  ceilingH: 2.7,      // floor to ceiling / top plate
+  floorZone: 0.3,     // joist depth
+  wasteBoard: 0.05,   // sheets & panels
+  sealPerTube: 10,    // m of bead per 600 ml (bindex allowance)
+  csrPerSausage: 6,   // m of 10x10 joint per 600 ml
+  fixRound: 100
+};
+var EPS = 1e-6;
+
+/* ---------------- helpers ---------------- */
+function ceil(x){ return Math.ceil(x - EPS); }
+function fmt(x, d){ d = d==null?2:d; return Number(x).toLocaleString('en-AU',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function fi(x){ return Number(x).toLocaleString('en-AU',{maximumFractionDigits:0}); }
+function mm(x){ return fi(Math.round(x*1000)); }
+function roundUp(n, step){ return Math.ceil(n/step - EPS)*step; }
+function anchorsAlong(len, endMax){ // fixings at 600 max centres, endMax from each end
+  var inner = Math.max(0, len - 2*endMax);
+  return Math.max(2, ceil(inner/0.6) + 1);
+}
+function unitFor(q,u){ if (String(q)==='1'){ var m={sheets:'sheet',lengths:'length',bags:'bag',anchors:'anchor',screws:'screw',fixings:'fixing',tubes:'tube',packs:'pack',panels:'panel',brackets:'bracket',sausages:'sausage'}; return m[u]||u; } return u; }
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function uniqSorted(a){
+  a = a.slice().sort(function(x,y){return x-y;});
+  var out=[]; a.forEach(function(v){ if(!out.length || v - out[out.length-1] > 0.05) out.push(v); });
+  return out;
+}
+function fillGaps(levels, base, firstMax, max){ // insert evenly spaced levels so no gap exceeds max
+  var out=[], prev=base, lim=firstMax;
+  levels.forEach(function(l){
+    var gap = l - prev;
+    if (gap > lim + EPS){
+      var k = ceil(gap/lim) - 1;
+      for (var i=1;i<=k;i++) out.push(prev + gap*i/(k+1));
+    }
+    out.push(l); prev=l; lim=max;
+  });
+  return out;
+}
+
+/* ---------------- building levels (shared) ---------------- */
+function levelsModel(H){
+  var n = Math.max(1, ceil((H - 1.5)/D.storeyPitch));
+  var ceilings=[], floors=[];
+  for (var k=0;k<n;k++) ceilings.push(Math.min(H, k*D.storeyPitch + D.ceilingH));
+  for (var j=1;j<n;j++) floors.push(j*D.storeyPitch);
+  var topCeiling = ceilings[n-1];
+  var roofSpace = Math.max(0, H - topCeiling);
+  var habitH = topCeiling - D.floorZone*(n-1);
+  return {n:n, ceilings:ceilings, floors:floors, topCeiling:topCeiling, roofSpace:roofSpace, habitH:habitH};
+}
+
+/* ---------------- Siniat Interhome low-rise ---------------- */
+function calcSiniat(L, H){
+  var M = levelsModel(H), items=[], notes=[], warn=[];
+  var SH=3.0, W=0.6;
+  var cols = ceil(L/W), lastW = L - (cols-1)*W;
+  var rows = ceil(H/SH), fullRows = rows-1, topH = H - SH*fullRows;
+  var perSheet = topH >= SH - EPS ? 1 : Math.max(1, Math.floor(SH/topH + EPS));
+  var sheetsNet = cols*fullRows + ceil(cols/perSheet);
+  var sheets = ceil(sheetsNet*(1+D.wasteBoard));
+  var studLines = Math.max(0, cols-1);
+  var studs = studLines*fullRows + ceil(studLines/perSheet);
+  var joints=[]; for (var r=1;r<=fullRows;r++) joints.push(r*SH);
+  if (H > 12 + EPS) warn.push('Siniat limits the central fire barrier to 12m high. This wall is taller: talk to Siniat Technical Services.');
+
+  // lamination zones (16mm fireshield, one side)
+  var bands=[];
+  M.floors.forEach(function(f){ bands.push({from:f - D.floorZone - 0.15, to:Math.min(H, f + 0.15), kind:'floor'}); });
+  if (M.roofSpace > EPS) bands.push({from:M.topCeiling - 0.15, to:H, kind:'roof'});
+  function inBand(h){ return bands.some(function(b){return h >= b.from - EPS && h <= b.to + EPS;}); }
+
+  // clip levels
+  var mand=[];
+  M.floors.forEach(function(f){ mand.push(f - D.floorZone); }); // floor/ceiling level (top plate of lower storey)
+  if (M.roofSpace > 0.3) mand.push(M.topCeiling);              // ceiling plate of top storey
+  mand.push(H - 0.15);                                           // within 300mm of top of barrier
+  joints.forEach(function(j){ var ok = mand.some(function(l){return l >= j-0.7-EPS && l <= j+EPS;}); if(!ok) mand.push(j-0.35); });
+  var clipLevels = fillGaps(uniqSorted(mand), 0, SH, SH);
+  var clipLines = cols + 1; // H-studs + 2 vertical J-tracks
+  var clipsPerSide = clipLevels.length*clipLines;
+  var clips = clipsPerSide*2;
+  var clipBags = ceil(clips/50);
+  var lamLevels = clipLevels.filter(inBand).length;
+  var scr30 = lamLevels*clipLines*2;                 // laminated side, through 16mm fireshield
+  var scr16clip = clips*2 - scr30;                   // 8g x 16 into H-stud
+  var scrFrame = clips*2;                            // to timber frame
+
+  // J-track
+  var jtPerRun = ceil(L/3);
+  var jtHoriz = jtPerRun*(2 + 2*fullRows);
+  var jtVert = 2*ceil(H/3);
+  var jt = jtHoriz + jtVert;
+  var anchors = anchorsAlong(L, 0.15);
+  var b2bScrews = fullRows*anchorsAlong(L, 0.15);
+  var cornerScrews = 2*2*(rows+1);
+  var scr16 = scr16clip + b2bScrews + cornerScrews;
+
+  // fireshield laminate
+  var FSL=3.6, FSW=1.2, fsSheets=0, lamScrews=0, lamArea=0;
+  var runs = ceil(L/FSL);
+  bands.forEach(function(b){
+    var h = Math.max(0, b.to - b.from); if (h <= EPS) return;
+    lamArea += h*L;
+    var full = Math.floor(h/FSW + EPS), rem = h - full*FSW;
+    var s = full*runs;
+    if (rem > EPS){ var per = Math.max(1, Math.floor(FSW/rem + EPS)); s += ceil(runs/per); }
+    fsSheets += s;
+    lamScrews += (ceil(L/0.4)+1)*(ceil(h/0.4)+1);
+  });
+  var fsOrder = fsSheets ? ceil(fsSheets*(1+D.wasteBoard)) : 0;
+
+  // sealant
+  var sealM = 2*(2*L + 2*H) + 2*L*fullRows + bands.length*2*L;
+  var tubes = Math.max(2, ceil(sealM/D.sealPerTube));
+  var batts = ceil(L/1.2), battPacks = ceil(batts/10);
+
+  var netA = L*H, grossA = sheets*SH*W;
+  var weight = grossA*21.3 + studs*(SH===3?1.83:1.90) + jt*0.95 + fsOrder*FSL*FSW*13.0;
+
+  var g1='Central fire barrier', g2='Clips & fixings', g3='Fire protection & sealing', g4='Rated system linings & insulation (usually by the plasterer / insulator)', g5='Site';
+  items.push({g:g1, name:'Siniat Intershield 25mm (or Shaftliner 25mm) 600 × 3000', qty:sheets, unit:'sheets', code:'',
+    why: cols+' across × '+rows+' row'+(rows>1?'s':'')+' ('+(fullRows?fullRows+' full 3000mm row'+(fullRows>1?'s':'')+' + ':'')+'top row '+mm(topH)+'mm'+(perSheet>1?', '+perSheet+' pieces cut per sheet':'')+') = '+sheetsNet+' sheets + '+Math.round(D.wasteBoard*100)+'% waste. Last sheet across ripped to '+mm(lastW)+'mm. 21.3kg/m², about '+fi(grossA*21.3)+'kg. Friction fit in H-studs and J-track, no screws.'});
+  if (studs) items.push({g:g1, name:'Siniat Interhome H-stud 25mm × 3000 (0.55 BMT)', qty:studs, unit:'lengths', code:'IHS25-30',
+    why: studLines+' stud lines at 600mm centres (one between each pair of sheets) × '+rows+' row'+(rows>1?'s':'')+(perSheet>1?' (top-row studs cut '+perSheet+' per length)':'')+'. Not fastened to the J-tracks. Use IHS25-36 (3600) only with 3600 sheets.'});
+  items.push({g:g1, name:'Siniat J-Track 28mm × 3000 (0.5 BMT)', qty:jt, unit:'lengths', code:'T28-30',
+    why: 'Bottom '+jtPerRun+' + top cap '+jtPerRun+' (top cap is optional per Fig. 35) + back-to-back at '+fullRows+' horizontal joint'+(fullRows===1?'':'s')+' '+(2*fullRows*jtPerRun)+' + both vertical ends 2 × '+ceil(H/3)+'. Lengths are not shared between runs.'});
+  items.push({g:g2, name:'Siniat Interhome aluminium clip (bag of 50)', qty:clipBags, unit:'bags', code:'CIH-L',
+    why: clips+' clips = '+clipLevels.length+' level'+(clipLevels.length>1?'s':'')+' ('+clipLevels.map(function(x){return fmt(x,2)+'m';}).join(', ')+') × '+clipLines+' lines ('+studLines+' H-studs + 2 end J-tracks) × 2 sides. Levels: floor/ceiling plates, within 300mm of the top, within 700mm below each sheet joint, max 3m apart. No clips at the base: J-track is anchored to the slab.'});
+  items.push({g:g2, name:'Concrete anchors for bottom J-track', qty:anchors, unit:'anchors', code:'', asm:true,
+    why: 'At 600mm max centres and 150mm max from ends along '+fmt(L)+'m. Guide says "concrete anchors" without a size: choose a suitable anchor for 0.5mm track into the slab.'});
+  items.push({g:g2, name:'8g × 16mm screws (steel to steel)', qty:roundUp(scr16,D.fixRound), unit:'screws', code:'',
+    why: 'Exact '+scr16+': '+scr16clip+' clip-to-H-stud (2 per clip, unlaminated face)'+(b2bScrews?' + '+b2bScrews+' back-to-back J-track at 600mm centres':'')+' + '+cornerScrews+' vertical-to-horizontal J-track (2 per junction, assumed). Rounded up to the next 100.'});
+  if (scr30) items.push({g:g2, name:'6g × 30mm screws (clip through 16mm Fireshield to H-stud)', qty:roundUp(scr30,D.fixRound), unit:'screws', code:'',
+    why: 'Exact '+scr30+': clips on the laminated face at '+lamLevels+' level'+(lamLevels>1?'s':'')+' inside a Fireshield zone, 2 screws each. Max screw length 40mm.'});
+  items.push({g:g2, name:'6g × 25mm screws or 2.8 × 30mm galv nails (clip to timber frame)', qty:roundUp(scrFrame,D.fixRound), unit:'fixings', code:'', asm:true,
+    why: 'Exact '+scrFrame+': 2 per clip into a timber frame. For a steel frame use 8g × 16mm screws instead.'});
+  if (fsOrder) items.push({g:g3, name:'Siniat Fireshield 16mm (or Multishield 16mm) 1200 × 3600, laminated', qty:fsOrder, unit:'sheets', code:'',
+    why: fmt(lamArea)+'m² on one face: '+bands.map(function(b){return (b.kind==='floor'?'floor zone ':'roof space ')+mm(b.to-b.from)+'mm high';}).join(', ')+' × '+fmt(L)+'m, ripped into strips = '+fsSheets+' sheets + '+Math.round(D.wasteBoard*100)+'% waste. 150mm below ceilings to 150mm above floors, and the whole roof space.'});
+  if (lamScrews) items.push({g:g3, name:'10g × 38mm coarse laminating screws', qty:roundUp(lamScrews,D.fixRound), unit:'screws', code:'',
+    why: 'Exact '+lamScrews+' on a 400 × 400mm max grid, 10–50mm from sheet edges, over the Fireshield strips.'});
+  items.push({g:g3, name:'Siniat bindex fire & acoustic sealant 600ml', qty:tubes, unit:'tubes', code:'4086105', asm:true,
+    why: 'Allowance of '+fmt(sealM,1)+'m of bead: barrier perimeter both faces'+(fullRows?', horizontal joints both faces':'')+(bands.length?', Fireshield strip edges':'')+'. About '+D.sealPerTube+'m per tube. Only gaps need sealant: touch-fitted joints do not.'});
+  items.push({g:g3, name:'Fletcher Fire Stop Party Wall Batts 100 × 168 × 1200 (pack of 10)', qty:battPacks, unit:'packs', code:'4006706', 
+    why: batts+' batts to pack the gap between the top of the barrier and the underside of the roof covering along '+fmt(L)+'m. Old code 338005. Fit with compression, no voids.'});
+  items.push({g:g4, name:'Wall insulation, 2 × Pink Batts R2.5 HD (system IHW1)', qty:fmt(2*L*M.habitH,1), unit:'m²', code:'', asm:true,
+    why: 'Both stud cavities: 2 × '+fmt(L)+'m × '+fmt(M.habitH)+'m of wall below the top ceiling'+(M.n>1?', less floor zones':'')+'. Not bought in packs here: check pack coverage.'});
+  items.push({g:g4, name:'Wall lining 10mm Siniat soundshield or opal, both sides (system IHW1)', qty:fmt(2*L*M.habitH,1), unit:'m²', code:'', asm:true,
+    why: 'Both dwellings\' faces, same area as the insulation. Listed so the rated system is complete; it is normal internal plasterboard work.'});
+  items.push({g:g5, name:'Plastic sheeting for weather protection', qty:fmt(L*H,1), unit:'m²', code:'', asm:true,
+    why: 'One face of the barrier ('+fmt(L)+' × '+fmt(H)+'m). Required in adverse weather; max 30 days exposure. Plus temporary propping by the builder until the dwelling is enclosed.'});
+
+  notes.push('The central fire barrier must be propped until the dwellings are enclosed (wind).');
+  notes.push('Keep 20mm minimum between the barrier and both frames (25mm recommended on the laminated side). Timber studs 70mm minimum.');
+  notes.push('Build the barrier to the underside of a non-combustible roof lining (or 450mm above a combustible roof). Control joints are not needed in the barrier.');
+  if (M.roofSpace <= EPS) notes.push('No roof space in this wall (height ≤ top ceiling), so no roof-space Fireshield is counted. If the wall runs into a roof space, add that height.');
+
+  var layout = cols+' sheets across × '+rows+' row'+(rows>1?'s':'')+' · '+studLines+' H-studs at 600mm · '+clipLevels.length+' clip level'+(clipLevels.length>1?'s':'');
+  return {key:'siniat', title:'Siniat Interhome', sub:'25mm Intershield in H-studs, aluminium clips', headline: sheets+' sheets', unitName:'sheets',
+    count:sheets, wNote:'Intershield, Fireshield, H-studs and J-track', netA:netA, grossA:grossA, weight:weight, items:items, notes:notes, warn:warn, layout:layout,
+    rating:'FRL 60/60/60 (supports the frame opposite the fire). IHW1: Rw+Ctr 64(50), discontinuous construction.',
+    geo:{L:L,H:H,cols:cols,rows:rows,topH:topH,joints:joints,clipLevels:clipLevels,bands:bands,M:M,lastW:lastW}};
+}
+
+/* ---------------- Hebel PowerPanel50 ---------------- */
+var HEBEL_LEN=[2.4,2.55,2.7,2.85,3.0], HEBEL_KG={2.4:50,2.55:53,2.7:56,2.85:59,3.0:62};
+function stockFor(h){ for (var i=0;i<HEBEL_LEN.length;i++) if (HEBEL_LEN[i] >= h - EPS) return HEBEL_LEN[i]; return null; }
+function calcHebel(L, H){
+  var M = levelsModel(H), items=[], notes=[], warn=[];
+  var W=0.6, cols=ceil(L/W), lastW = L-(cols-1)*W;
+  var n = ceil(H/3.0);
+  // option A: equal courses; option B: full 3000 + remainder
+  var hEq = H/n, sA = stockFor(hEq), offA = n*sA - H;
+  var rem = H - 3.0*(n-1), sB = stockFor(rem), offB = 3.0*(n-1) + sB - H;
+  var courses=[];
+  if (offA <= offB + EPS){ for (var i=0;i<n;i++) courses.push({h:hEq, stock:sA}); }
+  else { for (var j=0;j<n-1;j++) courses.push({h:3.0, stock:3.0}); courses.push({h:rem, stock:sB}); }
+  var joints=[], acc=0; courses.forEach(function(c,ix){ acc+=c.h; if (ix<courses.length-1) joints.push(acc); });
+  var byLen={}; courses.forEach(function(c){ byLen[c.stock]=(byLen[c.stock]||0)+cols; });
+  var panelsNet=0, panels=0, weight=0, grossA=0, lenLines=[];
+  Object.keys(byLen).sort().forEach(function(k){
+    var q=byLen[k], o=ceil(q*(1+D.wasteBoard)); panelsNet+=q; panels+=o;
+    weight += o*HEBEL_KG[k]; grossA += o*W*Number(k); lenLines.push({len:Number(k), net:q, order:o});
+  });
+  if (H > 10 + EPS) warn.push('Hebel limits the PowerPanel50 intertenancy wall to 10m total height. This wall is taller: talk to CSR Hebel.');
+  if (lastW > EPS && lastW < 0.27 - EPS && cols > 1) notes.push('The last panel across would be '+mm(lastW)+'mm, under the 270mm minimum width: rip the last two panels to about '+mm((lastW+0.6)/2)+'mm each. The count does not change.');
+
+  // bracket levels
+  var mand=[];
+  M.ceilings.forEach(function(c){ mand.push(c >= H - 0.05 ? H - 0.15 : c); });       // top plate each storey
+  M.floors.forEach(function(f){ mand.push(f + 0.05); });                               // bottom plate each upper storey
+  if (M.roofSpace > 0.3) mand.push(H - 0.3);                                           // between trusses near top
+  joints.forEach(function(jt){ var ok=mand.some(function(l){return Math.abs(l-jt) <= 0.6+EPS;}); if(!ok) mand.push(jt-0.3); });
+  var lv = uniqSorted(mand);
+  var cStart=0; courses.forEach(function(c,ix){ var a=cStart, b=cStart+c.h; if(!lv.some(function(l){return l>a+EPS && l<b-EPS;})) lv.push(ix<courses.length-1 ? Math.max(a+0.15, b-0.3) : (a+b)/2); cStart=b; });
+  var brLevels = fillGaps(uniqSorted(lv), 0, 2.9, 3.0);
+  var brackets = brLevels.length*cols*2;
+  var screws = brackets*4;
+
+  var dht = ceil(L/3), anchors = anchorsAlong(L, 0.1);
+  var adhesive = ceil(panelsNet/10);
+  var vcj = Math.max(0, ceil(L/6) - 1);
+  var hjM = joints.length*L;
+  var sealM = (vcj + 2)*H*2 + Math.max(0,dht-1)*0.2;
+  var sausages = Math.max(1, ceil(sealM/D.csrPerSausage));
+  var stripM = hjM + vcj*H;
+  var pwsM = L + 2*H, pwsPacks = ceil(pwsM/8);
+
+  var g1='Panels & base', g2='Brackets & fixings', g3='Joints, fire & acoustic sealing', g4='Rated system linings & insulation (usually by the plasterer / insulator)', g5='Repair & site';
+  lenLines.forEach(function(x){
+    items.push({g:g1, name:'Hebel PowerPanel50 50 × 600 × '+mm(x.len), qty:x.order, unit:'panels', code:'',
+      why: cols+' across × '+(courses.filter(function(c){return c.stock===x.len;}).length)+' course'+(courses.filter(function(c){return c.stock===x.len;}).length>1?'s':'')+' = '+x.net+' panels + '+Math.round(D.wasteBoard*100)+'% waste. Installed vertically, cut to '+courses.filter(function(c){return c.stock===x.len;}).map(function(c){return mm(c.h);}).join('/')+'mm. '+HEBEL_KG[x.len]+'kg each (35% MC), about '+fi(x.order*HEBEL_KG[x.len])+'kg. '+(lastW < 0.27-EPS && cols>1 ? 'Last two panels ripped to share the '+mm(lastW+0.6)+'mm end (270mm min width).' : 'Last panel ripped to '+mm(lastW)+'mm (270mm min width).')});
+  });
+  items.push({g:g1, name:'Hebel Deflection Head Track 51 × 50 × 0.7 BMT × 3000', qty:dht, unit:'lengths', code:'',
+    why: 'Continuous base track along '+fmt(L)+'m (default base detail, Fig. 1.10.2.1). Mitre at corners, seal butt joints with fire & acoustic sealant.'});
+  items.push({g:g1, name:'M8 screw anchors (Hilti HUS3-H M8 or Ramset M8 AnkaScrew)', qty:anchors, unit:'anchors', code:'',
+    why: 'Base track to slab at 600mm max centres and 100mm max from ends.'});
+  items.push({g:g2, name:'Hebel Wall Bracket, aluminium 75 × 40 × 1.6 BMT × 50 wide', qty:brackets, unit:'brackets', code:'',
+    why: brLevels.length+' level'+(brLevels.length>1?'s':'')+' ('+brLevels.map(function(x){return fmt(x,2)+'m';}).join(', ')+') × '+cols+' panels × 2 sides. One per panel within its central 300mm, 150mm min from joints. Levels: top plate of each storey, top and bottom plates upper storeys, near the top in the roof space, within 600mm of each panel joint, 2900mm max above the base and 3000mm max apart. None at the ground bottom plate: the base track restrains the panel.'});
+  items.push({g:g2, name:'12-11 × 35mm hex head Type 17 screws', qty:roundUp(screws,D.fixRound), unit:'screws', code:'', asm:true,
+    why: 'Exact '+screws+': 2 per bracket into the PowerPanel50 + 2 per bracket into a timber frame. For a steel frame use 2 × 10-16 × 16mm hex self-drillers per bracket for the frame side instead. Rounded up to the next 100.'});
+  items.push({g:g2, name:'Hebel Adhesive 20kg', qty:adhesive, unit:'bags', code:'', asm:true,
+    why: panelsNet+' panels at about 10 panels per bag (supplier-stated coverage). Applied to the vertical panel edges with a 50mm Hebel notched trowel, 2–3mm joints. Not used at control joints.'});
+  if (joints.length) items.push({g:g3, name:'Bradford Rockwool Fibertex 820 Plain Strip 50 × 13mm (110kg/m³)', qty:fmt(stripM,1), unit:'m', code:'', asm:!vcj,
+    why: joints.length+' horizontal panel joint'+(joints.length>1?'s':'')+' × '+fmt(L)+'m (Option 1, FRL 90)'+(vcj?' + '+vcj+' vertical control joint'+(vcj>1?'s':'')+' × '+fmt(H)+'m (Option 2)':'')+'. Strip packs not published in the guide: buy by the metre.'});
+  else if (vcj) items.push({g:g3, name:'Bradford Rockwool Fibertex 820 Plain Strip 50 × 13mm (110kg/m³)', qty:fmt(stripM,1), unit:'m', code:'',
+    why: vcj+' vertical control joint'+(vcj>1?'s':'')+' × '+fmt(H)+'m (Option 2, FRL 90).'});
+  items.push({g:g3, name:'CSR FireSeal fire & acoustic sealant 600ml sausage', qty:sausages, unit:'sausages', code:'122116', asm:true,
+    why: fmt(sealM,1)+'m of 10 × 10mm joint ('+vcj+' vertical control joint'+(vcj===1?'':'s')+' at 6m max centres + 2 wall ends at the external wall junctions, both faces, full height; plus base track butt joints). About '+D.csrPerSausage+'m per 600ml.'});
+  items.push({g:g3, name:'Open-cell backing rod (size to suit 10mm joint)', qty:fmt((vcj+2)*H*2,1), unit:'m', code:'', asm:true,
+    why: 'Behind the sealant in the vertical control joints and wall ends, both faces.'});
+  items.push({g:g3, name:'Bradford Fireseal Party Wall Sealer 50mm × 300 × 4000 (2 per pack, 8 lm)', qty:pwsPacks, unit:'packs', code:'123443', asm:true,
+    why: fmt(pwsM,1)+'m: top of wall to underside of roof covering '+fmt(L)+'m + the two external wall junctions 2 × '+fmt(H)+'m (assumed full height). Fit with 10% min. compression to fully fill gaps.'});
+  items.push({g:g4, name:'Wall insulation, 90mm Bradford Gold Batt R2.0 both sides (system CSR21772)', qty:fmt(2*L*M.habitH,1), unit:'m²', code:'', asm:true,
+    why: 'Both stud cavities: 2 × '+fmt(L)+'m × '+fmt(M.habitH)+'m below the top ceiling'+(M.n>1?', less floor zones':'')+'. Check pack coverage with your supplier.'});
+  items.push({g:g4, name:'Wall lining 1 × 10mm plasterboard both sides (system CSR21772)', qty:fmt(2*L*M.habitH,1), unit:'m²', code:'', asm:true,
+    why: 'Both dwellings\' faces. Listed so the rated system is complete. No fire-rated plasterboard is needed at floor zones or in the roof space.'});
+  items.push({g:g5, name:'Hebel Patch 10kg', qty:1, unit:'bag', code:'', asm:true, why:'Allowance for repairing minor chips and damage.'});
+  items.push({g:g5, name:'Hebel Anti-Corrosion Protection Paint', qty:1, unit:'tin', code:'', asm:true, why:'Allowance to coat reinforcement exposed by cutting (every ripped or shortened panel). Tin size not published in the guide.'});
+
+  notes.push('Temporary bracing of the panels is required until both frames and the external cladding are installed (the screw connections do not resist construction wind loads).');
+  notes.push('Separation gap 20mm each side for system CSR21772 (10mm gap systems in Table 1.1.2). Frames to AS 1684 / AS 1720.1 (timber) or AS 3623 / AS/NZS 4600 (steel).');
+  notes.push('FRL '+(H<=7.2+EPS?'90/90/90 (total height ≤ 7.2m)':'60/60/60 (total height over 7.2m, up to 10m)')+'. Control joints at 6m max centres and at the junction with the external wall.');
+  if (M.roofSpace <= EPS) notes.push('No roof space in this wall (height ≤ top ceiling). If the wall runs into a roof space, add that height.');
+
+  var layout = cols+' panels across × '+n+' course'+(n>1?'s':'')+' ('+courses.map(function(c){return mm(c.stock);}).join(' + ')+')'+' · '+vcj+' vertical control joint'+(vcj===1?'':'s')+' · '+brLevels.length+' bracket level'+(brLevels.length>1?'s':'');
+  return {key:'hebel', title:'Hebel PowerPanel50', sub:'50mm AAC panels, aluminium wall brackets', headline: panels+' panels', unitName:'panels',
+    count:panels, netA:L*H, grossA:grossA, weight:weight, wNote:'PowerPanel50 panels only (35% moisture content)', items:items, notes:notes, warn:warn, layout:layout,
+    rating:(H<=7.2+EPS?'FRL up to 90/90/90 (≤ 7.2m total height)':'FRL 60/60/60 (7.2–10m total height)')+'. CSR21772: Rw/Rw+Ctr 64/50, discontinuous construction.',
+    geo:{L:L,H:H,cols:cols,courses:courses,joints:joints,brLevels:brLevels,vcj:vcj,M:M,lastW:lastW}};
+}
+
+/* ---------------- sketches ---------------- */
+function sketch(r){
+  var g=r.geo, L=g.L, H=g.H, VW=560, pad=34, padR=16, padT=16, padB=30;
+  var sc = Math.min((VW-pad-padR)/L, 300/H);
+  var w=L*sc, h=H*sc, VH=h+padT+padB;
+  var X=function(x){return pad + x*sc;}, Y=function(y){return padT + h - y*sc;};
+  var s=['<svg viewBox="0 0 '+VW+' '+VH.toFixed(0)+'" role="img" aria-label="'+esc(r.title)+' wall elevation sketch" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,monospace" font-size="10">'];
+  // levels
+  g.M.ceilings.forEach(function(c){ if(c < H-EPS) s.push('<line x1="'+X(0)+'" x2="'+X(L)+'" y1="'+Y(c)+'" y2="'+Y(c)+'" stroke="#8a8072" stroke-dasharray="4 3" stroke-width=".8"/>'); });
+  g.M.floors.forEach(function(f){ s.push('<line x1="'+X(0)+'" x2="'+X(L)+'" y1="'+Y(f)+'" y2="'+Y(f)+'" stroke="#8a8072" stroke-dasharray="1 2" stroke-width=".8"/>'); });
+  if (r.key==='siniat'){
+    s.push('<rect x="'+X(0)+'" y="'+Y(H)+'" width="'+w+'" height="'+h+'" fill="#dfe8f1" stroke="none"/>');
+    g.bands.forEach(function(b){ s.push('<rect x="'+X(0)+'" y="'+Y(b.to)+'" width="'+w+'" height="'+((b.to-b.from)*sc)+'" fill="#f1c9cf" opacity=".85"/>'); });
+    for (var i=1;i<g.cols;i++) s.push('<line x1="'+X(i*0.6)+'" x2="'+X(i*0.6)+'" y1="'+Y(0)+'" y2="'+Y(H)+'" stroke="#2f5d8a" stroke-width="'+(sc*0.6>14?1.4:.8)+'"/>');
+    g.joints.forEach(function(j){ s.push('<line x1="'+X(0)+'" x2="'+X(L)+'" y1="'+Y(j)+'" y2="'+Y(j)+'" stroke="#1c1916" stroke-width="2.2"/>'); });
+    s.push('<rect x="'+X(0)+'" y="'+Y(H)+'" width="'+w+'" height="'+h+'" fill="none" stroke="#1c1916" stroke-width="2.2"/>');
+    var rr = Math.max(1.6, Math.min(3.2, sc*0.6/6));
+    g.clipLevels.forEach(function(l){ for (var k=0;k<=g.cols;k++){ var x = k===g.cols? L : k*0.6; s.push('<circle cx="'+X(x)+'" cy="'+Y(l)+'" r="'+rr+'" fill="#d9822b" stroke="#6b3b0c" stroke-width=".6"/>'); } });
+  } else {
+    var y0=0; g.courses.forEach(function(c){
+      for (var i=0;i<g.cols;i++){ var x=i*0.6, ww=Math.min(0.6, L-x);
+        s.push('<rect x="'+X(x)+'" y="'+Y(y0+c.h)+'" width="'+(ww*sc)+'" height="'+(c.h*sc)+'" fill="#ece6dc" stroke="#9c9183" stroke-width=".7"/>'); }
+      y0+=c.h; });
+    g.joints.forEach(function(j){ s.push('<line x1="'+X(0)+'" x2="'+X(L)+'" y1="'+Y(j)+'" y2="'+Y(j)+'" stroke="#7a6a2a" stroke-width="2.4"/>'); });
+    for (var v=1; v<=g.vcj; v++){ var xv = Math.round((L*v/(g.vcj+1))/0.6)*0.6; s.push('<line x1="'+X(xv)+'" x2="'+X(xv)+'" y1="'+Y(0)+'" y2="'+Y(H)+'" stroke="#b84312" stroke-width="2.6"/>'); }
+    s.push('<rect x="'+X(0)+'" y="'+Y(H)+'" width="'+w+'" height="'+h+'" fill="none" stroke="#1c1916" stroke-width="1.6"/>');
+    s.push('<rect x="'+X(0)+'" y="'+Y(0)+'" width="'+w+'" height="3" fill="#555"/>');
+    s.push('<rect x="'+X(0)+'" y="'+(Y(H)-3)+'" width="'+w+'" height="3" fill="#e0b84b"/>');
+    var rb = Math.max(1.6, Math.min(3.2, sc*0.6/6));
+    g.brLevels.forEach(function(l){ for (var k=0;k<g.cols;k++){ var xc = k*0.6 + Math.min(0.6, L-k*0.6)/2; s.push('<rect x="'+(X(xc)-rb)+'" y="'+(Y(l)-rb)+'" width="'+(2*rb)+'" height="'+(2*rb)+'" fill="#d9822b" stroke="#6b3b0c" stroke-width=".6"/>'); } });
+  }
+  // dims
+  s.push('<text x="'+(X(L/2))+'" y="'+(Y(0)+18)+'" text-anchor="middle" fill="#5c564e">'+mm(L)+' mm</text>');
+  s.push('<text x="'+(X(0)-6)+'" y="'+(Y(H/2))+'" text-anchor="middle" fill="#5c564e" transform="rotate(-90 '+(X(0)-6)+' '+Y(H/2)+')">'+mm(H)+' mm</text>');
+  if (g.M.roofSpace > 0.15) s.push('<text x="'+(X(L)-4)+'" y="'+(Y(H)+12)+'" text-anchor="end" fill="#5c564e">roof space '+mm(g.M.roofSpace)+'</text>');
+  s.push('</svg>');
+  var leg = r.key==='siniat'
+    ? '<span style="--c:#dfe8f1">Intershield 25mm</span><span style="--c:#2f5d8a">H-stud @600</span><span style="--c:#1c1916">J-track (perimeter, back-to-back joints)</span><span style="--c:#f1c9cf">16mm Fireshield laminate</span><span class="dot" style="--c:#d9822b">Clips (both sides)</span><span style="--c:repeating-linear-gradient(90deg,#8a8072 0 3px,transparent 3px 5px)">Assumed ceiling / floor</span>'
+    : '<span style="--c:#ece6dc">PowerPanel50 600 wide</span><span style="--c:#7a6a2a">Horizontal joint (Fibertex strip)</span><span style="--c:#b84312">Vertical control joint</span><span style="--c:#555">Deflection head track</span><span style="--c:#e0b84b">Party Wall Sealer</span><span style="--c:#d9822b">Brackets (both sides)</span>';
+  return '<div class="sketch">'+s.join('')+'</div><div class="legend">'+leg+'</div><p class="small muted" style="margin-top:6px">Schematic only, not a set-out. Floor and ceiling lines are the assumed levels.</p>';
+}
+
+/* ---------------- render ---------------- */
+var lastResults=[];
+function listText(r, L, H){
+  var t=[r.title+' party wall, '+fmt(L)+'m × '+fmt(H)+'m (unofficial planning quantities)'];
+  var grp=null;
+  r.items.forEach(function(it){
+    if (it.g!==grp){ grp=it.g; t.push(''); t.push(grp.toUpperCase()); }
+    t.push('- '+it.name+': '+it.qty+' '+unitFor(it.qty,it.unit)+(it.code?' [code '+it.code+']':''));
+  });
+  t.push(''); t.push('Check the current manufacturer installation guide before ordering.');
+  return t.join('\n');
+}
+function renderSystem(r){
+  var h=['<section class="sys '+r.key+'" id="sys-'+r.key+'"><header><div><h2 style="margin:0">'+esc(r.title)+'</h2><div class="small muted">'+esc(r.sub)+'</div></div>',
+    '<div class="btns"><button type="button" data-copy="'+r.key+'">Copy list</button><button type="button" data-print="1">Print</button></div></header>'];
+  r.warn.forEach(function(w){ h.push('<p class="warn">'+esc(w)+'</p>'); });
+  h.push('<h3>Layout</h3><p class="layout">'+esc(r.layout)+'</p>');
+  h.push(sketch(r));
+  h.push('<h3>Shopping list</h3><ul class="list">');
+  var grp=null;
+  r.items.forEach(function(it){
+    if (it.g!==grp){ grp=it.g; h.push('<li class="grp">'+esc(grp)+'</li>'); }
+    h.push('<li class="item"><div class="nm">'+esc(it.name)+'</div><div class="q">'+esc(it.qty)+' '+esc(unitFor(it.qty,it.unit))+'</div><div class="why">'+(it.code?'<span class="code">'+esc(it.code)+'</span>':'')+esc(it.why)+(it.asm?'<span class="asm">assumption</span>':'')+'</div></li>');
+  });
+  h.push('</ul><ul class="notes">'); r.notes.forEach(function(n){ h.push('<li>'+esc(n)+'</li>'); }); h.push('</ul></section>');
+  return h.join('');
+}
+function renderSummary(r){
+  return '<div class="sum '+r.key+'"><div class="tag">'+esc(r.title)+'</div><div class="big">'+esc(r.headline)+'</div>'+
+    '<div class="kv"><div><i>Net area</i><b>'+fmt(r.netA)+' m²</b></div><div><i>Supplied area</i><b>'+fmt(r.grossA)+' m²</b></div><div><i>Weight, approx.</i><b>'+fi(r.weight)+' kg</b></div><div><i>Lines</i><b>'+r.items.length+'</b></div></div>'+
+    '<div class="rating">'+esc(r.rating)+'<br>Weight covers '+esc(r.wNote)+'. Supplied area = '+esc(r.unitName)+' ordered × size.</div></div>';
+}
+function renderAssumptions(L, H, rs){
+  var M = levelsModel(H);
+  var common=[
+    'Storeys from height: <b>'+M.n+'</b> (one storey per 3.0m floor-to-floor, 2.7m floor-to-ceiling, 300mm floor zone). Top ceiling at '+fmt(M.topCeiling)+'m, roof space above it '+fmt(M.roofSpace)+'m.',
+    'Height is slab to underside of roof covering, treated as a rectangle (no rake). No openings: separating walls have none.',
+    'Waste <b>5%</b> on sheets and panels; steel, clips and brackets counted exact; screws rounded up to the next 100; sealant, batts and packs rounded up to whole packs.',
+    'Timber house frames both sides, ground floor on a concrete slab, straight wall with free ends at the external walls.'
+  ];
+  var sin=[
+    '25mm Intershield 600 × 3000 with 3m H-studs (IHS25-30); clips at max 3.0m intervals.',
+    'Bottom J-track anchored to slab (no base clips). Top J-track cap included (optional in the guide).',
+    '16mm Fireshield laminated on one face only: 150mm below each ceiling to 150mm above each floor, and the whole roof space.',
+    'bindex allowance about 10m of bead per 600ml tube, on the barrier perimeter and joints both faces.',
+    'Reference system IHW1 (10mm soundshield/opal + 2 × Pink Batts R2.5 HD) for the lining and insulation lines.'
+  ];
+  var heb=[
+    'Base: continuous Hebel deflection head track (no mortar bed, no ground bottom-plate brackets).',
+    'Panel lengths 2400/2550/2700/2850/3000; course layout with the least offcut; one stock panel per piece.',
+    'One bracket per panel per bracket level per side; 4 × 12-11 × 35mm Type 17 screws per bracket (timber frame).',
+    'Horizontal joints Option 1 (Fibertex strip, FRL 90); vertical control joints at 6m max, Option 2; both wall ends sealed like control joints.',
+    'Party Wall Sealer along the top plus both external-wall junctions full height. Adhesive at 10 panels per 20kg bag.',
+    'Reference system CSR21772 (90mm timber, 20mm gaps, 90mm Gold Batt R2.0, 1 × 10mm plasterboard) for lining and insulation lines.'
+  ];
+  return '<ul>'+common.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul>'+
+    '<div class="sub">Siniat Interhome</div><ul>'+sin.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>'+
+    '<div class="sub">Hebel PowerPanel50</div><ul>'+heb.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>'+
+    '<p class="small muted" style="margin-top:8px">Lines marked <span class="asm" style="margin:0;font-size:.72rem;background:#fff3d6;border:1px solid #ecd9a6;border-radius:5px;padding:0 5px;color:#7a5a00">assumption</span> use a rate or size the guides do not state.</p>';
+}
+function renderHow(){
+  function a(u,t){ return '<a href="'+u+'" target="_blank" rel="noopener">'+t+'</a>'; }
+  return [
+  '<h3>Both systems</h3><ul>',
+  '<li>Inputs are only the wall length and height. Everything else is a fixed default shown in the Assumptions panel. The tool derives the number of storeys from the height (one per 3.0m floor-to-floor, 2.7m ceilings, 300mm floor zones) to place clips, brackets and floor-zone protection.</li>',
+  '<li>Sheets and panels: 600mm wide, counted across the length (the last one ripped) and stacked up the height. 5% waste is added. Steel lengths, clips and brackets are counted exactly from the layout and are not shared between runs.</li>',
+  '<li>Party walls have no openings. Penetrations of the barrier and services details are not counted.</li>',
+  '<li>Not counted: house frames, noggings and trimmers, temporary props or bracing, roof framing, flashings and cappings ("by others" in the Hebel details), external wall junction cladding, wet-area linings, plaster jointing, and anything for steel-framed floors needing an FRL.</li></ul>',
+  '<h3>Siniat Interhome (low-rise)</h3><ul>',
+  '<li>Central fire barrier of 25mm Shaftliner or Intershield (Siniat recommends Intershield for weather resistance) encased in Interhome H-studs at 600mm centres, friction fit, no screws. 3m H-studs with 3m sheets, 3.6m with 3.6m. Barrier max 12m high. Intershield is 600 wide in 3000/3600, 21.3kg/m² (July 2026 catalogue).</li>',
+  '<li>J-Track (T28-30) on the slab 20mm (25mm recommended) clear of the frame, anchored at 600mm max centres and 150mm from ends; at both vertical ends; back-to-back at each horizontal sheet joint, screwed together at 600mm centres with 8g × 16mm.</li>',
+  '<li>Aluminium clips CIH-L on both sides of every H-stud and vertical J-track: at floor/ceiling levels on top or bottom plates, within 300mm of the top of the barrier, at max 3m intervals (3.6m with 3.6m sheets), and within 700mm below the top of the H-studs at each horizontal joint. Fasteners: 2 × 8g × 16mm into steel, 2 × 6g × 30mm through 16mm Fireshield, 2 × 6g × 25mm screws or 2.8 × 30mm nails into softwood. The catalogue lists the clip as a bag of 50 (a second table on the same page says 150 per bag; this tool uses 50).</li>',
+  '<li>Additional 16mm Fireshield or Multishield laminated to the barrier with 10g × 38mm laminating screws at 400 × 400mm max, 10–50mm from edges: at floor joists from 150mm below the ceiling to 150mm above the floor, and through the roof space. Strips are ripped from 1200 × 3600 sheets.</li>',
+  '<li>bindex fire &amp; acoustic sealant on all gaps in the barrier (not needed where touch-fitted). Fletcher Fire Stop Party Wall Batts pack the gap between the top of the barrier and the underside of the roof covering. Build to the underside of a non-combustible roof lining, or 450mm above a combustible roof.</li></ul>',
+  '<h3>Hebel PowerPanel50</h3><ul>',
+  '<li>50mm steel-reinforced AAC panels, 600mm wide, installed vertically, 3000mm max length, panels bonded with Hebel Adhesive at vertical joints. Wall max 10m. FRL 90/90/90 up to 7.2m total height, 60/60/60 up to 10m. Min ripped width 270mm. Weights at 35% moisture: 2400 50kg, 2550 53kg, 2700 56kg, 2850 59kg, 3000 62kg.</li>',
+  '<li>Base: Hebel deflection head track 51 × 50 × 0.7 BMT × 3000, fixed with Hilti HUS3-H M8 or Ramset M8 AnkaScrew at 600mm max centres, 100mm from ends.</li>',
+  '<li>Aluminium wall brackets 75 × 40 × 1.6 BMT × 50 wide, each side of the panel. Ground level: top plate (no bottom-plate bracket with a continuous base track). Upper levels: top and bottom plates. Fixed to the panel within the central 300mm of each 600mm panel, 150mm min from vertical joints. 3000mm max bracket to bracket (2900mm at ground floor), 600mm max from a bracket to a panel joint. Fasteners: 2 × 12-11 × 35mm hex Type 17 into timber (2 × 10-16 × 16mm self-drillers into steel), plus 2 × 12-11 × 35mm Type 17 into the panel.</li>',
+  '<li>Control joints: vertical at 6m max and at external wall junctions, horizontal at panel courses. Horizontal Option 1: 50 × 13mm Bradford Rockwool Fibertex 820 strip (110kg/m³). Vertical Option 2: Fibertex strip plus 10 × 10mm CSR FireSeal over backing rod on both sides. Bradford Fireseal Party Wall Sealer, 10% min. compression, from the top of the wall to the underside of the roof covering and at the external wall junctions.</li>',
+  '<li>Hebel Patch for chips, Hebel Anti-Corrosion Protection Paint on cut reinforcement. Hebel Mortar is only for mortar-bed bases and is not counted with the deflection head track base.</li></ul>',
+  '<h3>Fixed defaults</h3><ul>',
+  '<li>Storey pitch 3.0m, ceiling 2.7m, floor zone 300mm; waste 5% on sheets/panels; screws to the next 100; bindex 10m per tube; CSR FireSeal 6m of 10 × 10mm per 600ml; Fire Stop batts 1.2m each, 10 per pack; Party Wall Sealer 8 lm per pack; Hebel Adhesive 10 panels per bag.</li></ul>',
+  '<h3>Sources</h3><ul class="src">',
+  '<li>'+a(SRC.siniatGuide,'Siniat Interhome Low-Rise systems and installation guide, Version 15, Feb 2025 (PDF)')+'</li>',
+  '<li>'+a(SRC.siniatPage,'Siniat Interhome system page')+'</li>',
+  '<li>'+a(SRC.siniatCat,'Siniat product catalogue, July 2026 (IHS25-30/36, T28-30, CIH-L, Intershield, Fireshield)')+'</li>',
+  '<li>'+a(SRC.siniatOffer,'Siniat product offer 2024, QLD (bindex 600ml, SAP 4086105)')+'</li>',
+  '<li>'+a(SRC.fletcher,'Fletcher Fire Stop Party Wall Batts (4006706 / 338005)')+'</li>',
+  '<li>'+a(SRC.hebelGuide,'Hebel Low Rise Multi Residential PowerPanel50 Intertenancy and Dual Zero Boundary Walls Design & Installation Guide, HELIT152 (PDF)')+'</li>',
+  '<li>'+a(SRC.hebelFlyer,'Hebel PowerPanel50 Intertenancy Wall flyer, HELIT171 Nov 2025 (PDF)')+'</li>',
+  '<li>'+a(SRC.bradfordPWS,'Bradford Fireseal Party Wall Sealer (123443)')+'</li>',
+  '<li>'+a(SRC.csrFireseal,'CSR FireSeal sealant')+' · '+a(SRC.csrFiresealSDS,'CSR FireSeal SDS (product code 122116)')+'</li>',
+  '<li>'+a(SRC.hebelAdhesive,'Hebel Adhesive 20kg, supplier listing ("one bag ... ten panels")')+'</li></ul>'
+  ].join('');
+}
+
+var lenEl=document.getElementById('len'), hgtEl=document.getElementById('hgt'), errEl=document.getElementById('err');
+function update(){
+  var L=parseFloat(lenEl.value), H=parseFloat(hgtEl.value), e=[];
+  if (!(L>=0.6 && L<=60)) e.push('Length must be between 0.6 and 60 m.');
+  if (!(H>=1 && H<=12)) e.push('Height must be between 1 and 12 m.');
+  errEl.textContent=e.join(' ');
+  if (e.length) return;
+  document.getElementById('echo').textContent = fmt(L)+' m × '+fmt(H)+' m · '+mm(L)+' × '+mm(H)+' mm · '+fmt(L*H)+' m²';
+  var rs=[calcSiniat(L,H), calcHebel(L,H)]; lastResults=rs;
+  document.getElementById('summary').innerHTML = rs.map(renderSummary).join('');
+  document.getElementById('systems').innerHTML = rs.map(renderSystem).join('');
+  document.getElementById('assume').innerHTML = renderAssumptions(L,H,rs);
+  window.__results = rs;
+}
+function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); setTimeout(function(){t.classList.remove('on');},1600); }
+document.addEventListener('click', function(ev){
+  var b=ev.target.closest('button'); if(!b) return;
+  if (b.dataset.print){ window.print(); return; }
+  if (b.dataset.copy){
+    var r=lastResults.filter(function(x){return x.key===b.dataset.copy;})[0]; if(!r) return;
+    var txt=listText(r, parseFloat(lenEl.value), parseFloat(hgtEl.value));
+    var done=function(){toast('List copied');};
+    if (navigator.clipboard && window.isSecureContext){ navigator.clipboard.writeText(txt).then(done, function(){fallback(txt);done();}); }
+    else { fallback(txt); done(); }
+  }
+});
+function fallback(txt){ var ta=document.createElement('textarea'); ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} document.body.removeChild(ta); }
+lenEl.addEventListener('input',update); hgtEl.addEventListener('input',update);
+document.getElementById('how').innerHTML = renderHow();
+window.__calc = {siniat:calcSiniat, hebel:calcHebel, levels:levelsModel};
+update();
+})();
+</script>
+</body>
+</html>
